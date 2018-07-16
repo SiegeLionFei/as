@@ -20,7 +20,7 @@ try:
 except:
     from AS import *
 
-__all__ = ['can_open','can_write','can_read', 'can_close']
+__all__ = ['can_open','can_write','can_read','can_close']
 
 __can__ = can()
 
@@ -51,4 +51,4 @@ def can_read(busid,canid):
     return result,canid,data
 
 def can_close(busid):
-    print("ERROR: this can_close is not supported now, TODO!")
+    return __can__.close(busid)

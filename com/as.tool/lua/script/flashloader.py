@@ -298,9 +298,11 @@ class AsFlashloader(QThread):
         return self.enable[8]
     def is_check_flash_driver_enabled(self):
         return self.enable[5]
-    def setTarget(self,app,flsdrv=None):
+    def setTarget(self,app,flsdrv=None, eraseProperty=None, writeProperty=None):
         self.app = app
         self.flsdrv = flsdrv
+        self.eraseProperty = eval(str(eraseProperty))
+        self.writeProperty = eval(str(writeProperty))
 
     def GetSteps(self):
         ss = []
@@ -371,11 +373,11 @@ class AsFlashloader(QThread):
         return self.transmit([0x37],[0x77])
     
     def download_one_section(self,address,size,data,identifier):
-        FLASH_WRITE_SIZE = 512
+        FLASH_WRITE_SIZE = self.writeProperty
         blockSequenceCounter = 1
         left_size = size
         pos = 0
-        ability = int(((4096-4)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
+        ability = int(((4096-5)/FLASH_WRITE_SIZE)) * FLASH_WRITE_SIZE
         # round up
         size2 = int((left_size+FLASH_WRITE_SIZE-1)/FLASH_WRITE_SIZE)*FLASH_WRITE_SIZE
         ercd,res = self.request_download(address,size2,identifier)
@@ -404,10 +406,10 @@ class AsFlashloader(QThread):
         return ercd,res
 
     def upload_one_section(self,address,size,identifier):
-        FLASH_READ_SIZE = 512
+        FLASH_READ_SIZE = 4
         blockSequenceCounter = 1
         left_size = size
-        ability = int(((4096-4)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
+        ability = int(((4096-5)/FLASH_READ_SIZE)) * FLASH_READ_SIZE
         # round up
         size2 = int((left_size+FLASH_READ_SIZE-1)/FLASH_READ_SIZE)*FLASH_READ_SIZE
         ercd,res = self.request_upload(address,size2,identifier)
@@ -472,7 +474,13 @@ class AsFlashloader(QThread):
                 saddr = ss['address']
             if(ss['address']+ss['size'] > eaddr):
                 eaddr = ss['address']+ss['size']
-        eaddr = int((eaddr+511)/512)*512
+        if(type(self.eraseProperty) == list):
+            for addr in self.eraseProperty:
+                if(eaddr <= addr):
+                    eaddr = addr
+                    break
+        else:
+            eaddr = int((eaddr+self.eraseProperty-1)/self.eraseProperty)*self.eraseProperty
         return self.transmit([0x31,0x01,0xFF,0x01,
                               (saddr>>24)&0xFF,(saddr>>16)&0xFF,(saddr>>8)&0xFF,(saddr>>0)&0xFF,
                               (eaddr>>24)&0xFF,(eaddr>>16)&0xFF,(eaddr>>8)&0xFF,(eaddr>>0)&0xFF,
@@ -602,7 +610,18 @@ class UIFlashloader(QWidget):
         grid.addWidget(self.cmbxCanBaud,3,3)
         grid.addWidget(self.btnStartASLUA,3,4)
         vbox.addLayout(grid)
-        
+
+        grid.addWidget(QLabel('Erase Property:'),4,0)
+        self.leFlsEraseProperty = QLineEdit()
+        grid.addWidget(self.leFlsEraseProperty,4,1)
+        self.leFlsEraseProperty.setToolTip('Sector start address list or the smallest sector size\nfor example:\n  list:[0,128*1024,...]\n  size: 512')
+        self.leFlsEraseProperty.setText('128*1024')
+        grid.addWidget(QLabel('Write Property:'),5,0)
+        self.leFlsWriteProperty = QLineEdit()
+        grid.addWidget(self.leFlsWriteProperty,5,1)
+        self.leFlsWriteProperty.setToolTip('the smallest page size')
+        self.leFlsWriteProperty.setText('8')
+
         hbox = QHBoxLayout()
         vbox2 = QVBoxLayout()
         for s in self.loader.GetSteps():
@@ -625,14 +644,18 @@ class UIFlashloader(QWidget):
         self.btnStartASLUA.clicked.connect(self.on_btnStartASLUA_clicked)
         self.cbxCANFDMode.stateChanged.connect(self.on_cbxCANFDMode_stateChanged)
         self.cmbxProtocol.currentIndexChanged.connect(self.on_cmbxProtocol_currentIndexChanged)
-        release = os.path.abspath('%s/../../../release'%(os.curdir))
-        default_app=''
-        default_flsdrv=''
-        if(os.path.exists(release)):
-            for ss in glob.glob('%s/ascore/*.s19'%(release)):
+        aspath = os.path.abspath('%s/../../..'%(os.curdir))
+        default_app='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/Project/bin/internal_FLASH.mot'%(aspath)
+        default_flsdrv='%s/com/as.application/board.mpc56xx/MPC5634M_MLQB80/FlsDrv/bin/internal_FLASH.mot'%(aspath)
+        if(not os.path.exists(default_app)):
+            default_app = ''
+        if(not os.path.exists(default_flsdrv)):
+            default_flsdrv = ''
+        if(os.path.exists(aspath)):
+            for ss in glob.glob('%s/release/ascore/*.s19'%(aspath)):
                 default_app = ss
                 break
-            for ss in glob.glob('%s/asboot/*-flsdrv.s19'%(release)):
+            for ss in glob.glob('%s/release/asboot/*-flsdrv.s19'%(aspath)):
                 default_flsdrv = ss
                 break
         if(os.path.exists(default_app)):
@@ -660,17 +683,18 @@ class UIFlashloader(QWidget):
         self.pgbProgress.setValue(prg)
 
     def on_btnOpenApp_clicked(self):
-        rv = QFileDialog.getOpenFileName(None,'application file', '','application (*.s19 *.bin)')
+        rv = QFileDialog.getOpenFileName(None,'application file', '','application (*.s19 *.bin *.mot)')
         self.leApplication.setText(rv[0])
 
     def on_btnOpenFlsDrv_clicked(self):
-        rv = QFileDialog.getOpenFileName(None,'flash driver file', '','flash driver (*.s19 *.bin)')
+        rv = QFileDialog.getOpenFileName(None,'flash driver file', '','flash driver (*.s19 *.bin *.mot)')
         self.leFlsDrv.setText(rv[0])
 
     def on_btnStart_clicked(self):
         if(os.path.exists(str(self.leApplication.text()))):
             self.pgbProgress.setValue(1)
-            self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()))
+            self.loader.setTarget(str(self.leApplication.text()), str(self.leFlsDrv.text()),
+                                  str(self.leFlsEraseProperty.text()),str(self.leFlsWriteProperty.text()))
             self.loader.start()
         else:
             QMessageBox.information(self, 'Tips', 'Please load a valid application first!')

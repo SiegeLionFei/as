@@ -8,17 +8,19 @@ config RTE
 config RTE_SWC_TELLTALE
 	bool "demo telltale software component"
 	default y if ARCH_POSIX && DIO
+	depends on RTE
 
 config RTE_SWC_GAUGE
 	bool "demo gauge software component"
 	default y if ARCH_POSIX && STMO
+	depends on RTE
 
 endmenu
 
 menu "ASCORE simple test case"
 config TEST
 	bool "some simple test case for ascore"
-	default y if !ARCH_POSIX
+	default n
 
 config PTHREAD_TEST
 	bool "askar pthread test case"
