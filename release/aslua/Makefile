@@ -47,14 +47,19 @@ endif
 ifeq ($(host), MSYS_NT-10.0)
 export msys2 = yes
 endif
+ifeq ($(host), MINGW32_NT-6.2)
+export msys2 = yes
+endif
+# force using msys2 if invoke from Console.bat
+ifeq ($(ISMSYS2), YES)
+export msys2 = yes
+endif
 ifeq ($(msys2),yes)
 PY27 = /c/Python27/python
 PY34 = /c/Anaconda3/python
-
 else
 PY27 = C:/Python27/python
 PY34 = C:/Anaconda3/python
-$(error this is not right)
 endif
 endif
 LNFS  = $(PY34) $(prj-dir)/release/make/lnfs.py
@@ -219,21 +224,21 @@ $(download)/CAN_lib:$(download)/CAN_lib.zip
 ifeq ($(host),Linux)
 else
 	@(cd $(download);unzip CAN_lib.zip)
-	@(sed -i "148c #define EXTERNC extern" $(download)/ControlCAN/32/ControlCAN.h)
+	@(sed -i "148c #define EXTERNC extern" $(download)/CAN_lib/32bit/ControlCAN.h)
 	@(sed -i "168c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
-		$(download)/ControlCAN/32/ControlCAN.h)
-	@(sed -i "163c #define EXTERNC extern" $(download)/ControlCAN/64/ControlCAN.h)
+		$(download)/CAN_lib/32bit/ControlCAN.h)
+	@(sed -i "163c #define EXTERNC extern" $(download)/CAN_lib/64bit/ControlCAN.h)
 	@(sed -i "183c EXTERNC ULONG __stdcall VCI_Receive(DWORD DeviceType,DWORD DeviceInd,DWORD CANInd,PVCI_CAN_OBJ pReceive,ULONG Len,INT WaitTime);" \
-		$(download)/ControlCAN/64/ControlCAN.h)
+		$(download)/CAN_lib/64bit/ControlCAN.h)
 endif
 
 aszlg:$(download)/CAN_lib
 ifeq ($(host),Linux)
 else
 ifeq ($(msys2),yes)
-	@(cp -fv $(download)/ControlCAN/64/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(download)/CAN_lib/64bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 else
-	@(cp -fv $(download)/ControlCAN/32/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(download)/CAN_lib/32bit/ControlCAN.dll $(prj-dir)/com/as.tool/as.one.py)
 endif
 endif
 
@@ -253,9 +258,9 @@ aspeak:$(download)/pcan-basic
 ifeq ($(host),Linux)
 else
 ifeq ($(msys2),yes)
-	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/x64/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(download)/pcan-basic/x64/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 else
-	@(cp -fv $(download)/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
+	@(cp -fv $(download)/pcan-basic/Win32/PCANBasic.dll $(prj-dir)/com/as.tool/as.one.py)
 endif
 endif
 dep-arm:asreadline asncurse aslibaws
@@ -283,11 +288,11 @@ ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(msys2),yes)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/64bit FALSE)
 else
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
 endif
 endif
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/diagnostic/Det/asdebug.c)
@@ -330,11 +335,11 @@ ifeq ($(host),Linux)
 else
 	@(cd $(src-dir);$(LNFS) $(INFRASTRUCTURE)/clib/strtok_r.c)
 ifeq ($(msys2),yes)
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/64 FALSE)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/x64/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/64bit FALSE)
 else
-	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/"PCAN-Basic API"/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
-	@(cd $(src-dir);$(LNFS) $(download)/ControlCAN/32 FALSE)
+	@(cd $(src-dir);rm -f PCANBasic.lib;cp -f $(download)/pcan-basic/Win32/VC_LIB/PCANBasic.lib PCANBasic.lib)
+	@(cd $(src-dir);$(LNFS) $(download)/CAN_lib/32bit FALSE)
 endif
 endif
 	@(cd $(src-dir);$(LNFS) $(prj-dir)/com/as.tool/cancasexl.access/vxlapi.h)
@@ -351,7 +356,7 @@ ifeq ($(host),Linux)
 	@echo "  >> use linux vcan"
 else
 	@echo "  >> CC socketwin_can_driver.c"
-	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ -I $(INFRASTRUCTURE)/include $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
+	@gcc -D__SOCKET_WIN_CAN_DRIVER__ -D__WINDOWS__ $(src-dir)/socketwin_can_driver.c $(ldflags-y) -o $(exe-dir)/socketwin_can_driver
 	@cp -v $(exe-dir)/socketwin_can_driver.exe $(prj-dir)/com/as.tool/lua/script/
 endif
 endif

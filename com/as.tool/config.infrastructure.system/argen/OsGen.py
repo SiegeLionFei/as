@@ -18,7 +18,7 @@ import sys,os
 from .util import *
 from .gen_freeosek import *
 from .gen_toppers_osek import *
-from .gen_smallos import *
+from .gen_tinyos import *
 from .gen_freertos import *
 from .gen_toppers_atk2_sc4 import *
 from .gen_contiki import *
@@ -52,7 +52,7 @@ def gen_osal(gendir,os_list):
     
 __osgen__ = {'freeosek':gen_freeosek,
              'toppers_osek':gen_toppers_osek,
-             'smallos':gen_smallos,
+             'tinyos':gen_tinyos,
              'freertos':gen_freertos,
              'atk2-sc4':gen_toppers_atk2_sc4,
              'contiki':gen_contiki,
@@ -61,7 +61,8 @@ __osgen__ = {'freeosek':gen_freeosek,
              'trampoline':gen_trampoline,
              'rtthread':gen_osal,
              'tinix':gen_osal,
-             'askar':gen_askar
+             'askar':gen_askar,
+             'anyos':gen_osal,
             }
 
 def getOsRef(os_list):
@@ -74,9 +75,6 @@ def getOsRef(os_list):
     return 'askar'
     
 def OsGen(gendir):
-    if(defaultOS == 'anyos'):
-        print('  ==> skipping OSGen as set anyos...')
-        return
     os_list = ScanXML(gendir,'Os')
     if(len(ScanFrom(os_list,'General')) == 0):return
     os_ref = getOsRef(os_list)

@@ -462,7 +462,7 @@ void __error__(char *pcFilename, unsigned long ulLine)
 	printf(" error @ %d of %s\n",(int)ulLine,pcFilename);
 }
 
-#if 0
+#if 1 
 #ifndef USE_STDRT
 void abort(void) { printf("%s\n",__func__); asAssert(0); while(1); }
 #endif

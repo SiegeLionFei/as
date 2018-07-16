@@ -99,7 +99,7 @@ static boolean get_zlg_param(uint32_t port,uint32_t* DeviceType,uint32_t* CANInd
 	printf("\tport 3 --> VCI_USBCAN_E_U  CAN0\n");
 	if(port < 2)
 	{
-		*DeviceType = VCI_USBCAN_2E_U;
+		*DeviceType = VCI_USBCAN2;
 		*CANInd  = port;
 	}
 	else if(port < 3)
