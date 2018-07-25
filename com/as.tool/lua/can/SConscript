@@ -21,12 +21,20 @@ if(IsPlatformWindows()):
         
         MKSymlink('%s/release/download/ControlCAN/64/ControlCAN.dll'%(asenv['ASROOT']),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/ControlCAN/64/ECanVci64.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/ECanVci64.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/ControlCAN/64/CHUSBDLL64.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/CHUSBDLL64.dll'%(asenv['ASROOT'],asenv['RELEASE']))				  
         MKSymlink('%s/release/download/pcan-basic/"PCAN-Basic API"/x64/PCANBasic.dll'%(asenv['ASROOT']),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
     else:
         asenv.Append(CCFLAGS='-I%s/release/download/ControlCAN/32'%(asenv['ASROOT']))
         MKSymlink('%s/release/download/ControlCAN/32/ControlCAN.dll'%(asenv['ASROOT']),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/ControlCAN/32/ECanVci.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/ECanVci64.dll'%(asenv['ASROOT'],asenv['RELEASE']))
+        MKSymlink('%s/release/download/ControlCAN/32/CHUSBDLL.dll'%(asenv['ASROOT']),
+                  '%s/release/%s/CHUSBDLL64.dll'%(asenv['ASROOT'],asenv['RELEASE']))					  
         MKSymlink('%s/release/download/pcan-basic/"PCAN-Basic API"/Win32/PCANBasic.dll'%(asenv['ASROOT']),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
 
@@ -37,9 +45,11 @@ if(IsPlatformWindows()):
     if(asenv['msys2']):
         objs += Glob('%s/release/download/pcan-basic/PCAN-Basic API/x64/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
         objs += Glob('%s/release/download/ControlCAN/64/ControlCAN.lib'%(asenv['ASROOT']))
+		objs += Glob('%s/release/download/ControlCAN/64/ECanVci64.lib'%(asenv['ASROOT']))
     else:
         objs += Glob('%s/release/download/pcan-basic/PCAN-Basic API/Win32/VC_LIB/PCANBasic.lib'%(asenv['ASROOT']))
         objs += Glob('%s/release/download/ControlCAN/32/ControlCAN.lib'%(asenv['ASROOT']))
+		objs += Glob('%s/release/download/ControlCAN/32/ECanVci.lib'%(asenv['ASROOT']))
 src = '%s/socketwin_can_driver.c'%(cwd)
 tgt = '%s/../script/socketwin_can_driver.exe'%(cwd)
 cmd = 'gcc %s -D__SOCKET_WIN_CAN_DRIVER__ -I%s/com/as.infrastructure/include -o %s'%(src,asenv['ASROOT'],tgt)

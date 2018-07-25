@@ -82,6 +82,7 @@ static const Can_DeviceOpsType* canOps [] =
 	&can_vxl_ops,
 	&can_peak_ops,
 	&can_zlg_ops,
+	&can_GCAN_ops,
 	#else
 	&can_socket_ops,
 	#endif

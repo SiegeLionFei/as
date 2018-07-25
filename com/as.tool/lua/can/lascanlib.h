@@ -50,6 +50,7 @@ extern const Can_DeviceOpsType can_serial_ops;
 extern const Can_DeviceOpsType can_vxl_ops;
 extern const Can_DeviceOpsType can_peak_ops;
 extern const Can_DeviceOpsType can_zlg_ops;
+extern const Can_DeviceOpsType can_GCAN_ops;
 #else
 extern const Can_DeviceOpsType can_socket_ops;
 #endif
